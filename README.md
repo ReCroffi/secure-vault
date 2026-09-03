@@ -77,7 +77,7 @@ cp .env.example .env       # preencher DATABASE_URL com suas credenciais locais
 
 - [x] Fase 0 — Setup do projeto e dependências (`uv`)
 - [x] Fase 1 — Conexão com Postgres e configuração via `.env`
-- [ ] Fase 2 — Modelagem do schema + primeira migration (Alembic)
+- [x] Fase 2 — Modelagem do schema + primeira migration (Alembic)
 - [ ] Fase 3 — Criação do vault (senha mestra, salt, hash)
 - [ ] Fase 4 — Autenticação e derivação de chave em memória
 - [ ] Fase 5 — CRUD de credenciais criptografadas via CLI
