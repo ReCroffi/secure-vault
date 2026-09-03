@@ -1,0 +1,34 @@
+[project]
+name = "secure-vault"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+authors = [
+    { name = "Renan Croffi", email = "renancroffi@gmail.com" }
+]
+requires-python = ">=3.12"
+dependencies = [
+    "argon2-cffi>=25.1.0",
+    "cryptography>=50.0.1",
+    "psycopg[binary]>=3.3.5",
+    "pydantic-settings>=2.15.0",
+    "pyotp>=2.10.0",
+    "pyperclip>=1.11.0",
+    "sqlalchemy>=2.0.52",
+    "textual>=8.2.8",
+    "typer>=0.27.2",
+    "zxcvbn>=4.5.0",
+]
+
+[project.scripts]
+secure-vault = "secure_vault:main"
+
+[build-system]
+requires = ["uv_build>=0.12.7,<0.13.0"]
+build-backend = "uv_build"
+
+[dependency-groups]
+dev = [
+    "pytest>=9.1.1",
+    "ruff>=0.16.5",
+]
