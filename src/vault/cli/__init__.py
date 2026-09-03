@@ -3,6 +3,7 @@ import typer
 from vault.core.crypto import decrypt_password, encrypt_password
 from vault.core.master_password import create_vault, login
 from vault.db.credentials import (
+    delete_credential,
     get_all_credentials,
     get_credentials_by_service,
     save_credential,
@@ -88,4 +89,24 @@ def list_credentials():
     for credential in credentials:
         service = credential.service_name
         username = credential.login
-        typer.echo(f"Service: {service}\nLogin: {username}")
+        credential_id = credential.id
+        typer.echo(f"Service: {service}\nLogin: {username}\nID: {credential_id}")
+
+
+@app.command()
+def delete(credential_id: int):
+    """Apaga uma credencial pelo id. Irreversivel, pede confirmacao.
+
+    Usa o id (chave primaria) em vez do nome do servico porque o mesmo
+    servico pode ter varios logins - apagar por nome levaria todos junto.
+    Rode `secure-vault list` para descobrir o id. Sai com codigo 1 se o id
+    nao existir.
+    """
+    _get_key()
+    typer.confirm("Tem certeza?", abort=True)
+    deleted = delete_credential(credential_id)
+    if deleted:
+        typer.echo("Apagado com sucesso")
+    else:
+        typer.echo("Não encontrado")
+        raise typer.Exit(code=1)
