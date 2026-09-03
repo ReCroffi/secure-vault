@@ -18,15 +18,6 @@ def generate_salt() -> bytes:
     return secrets.token_bytes(16)
 
 
-def create_vault(password: str) -> None:
-    vault_config = VaultConfig(
-        master_password_hash=hash_master_password(password), salt=generate_salt()
-    )
-    with Session() as session:
-        session.add(vault_config)
-        session.commit()
-
-
 def verify_master_password(password: str) -> bool:
     with Session() as session:
         vault_config = session.execute(select(VaultConfig)).scalar_one()
@@ -60,3 +51,20 @@ def login(password: str) -> bytes:
         return key
     else:
         raise ValueError("Senha mestra incorreta")
+
+
+def vault_exists() -> bool:
+    with Session() as session:
+        return session.execute(select(VaultConfig)).scalar_one_or_none() is not None
+
+
+def create_vault(password: str) -> None:
+    if vault_exists():
+        raise ValueError("Vault já existente")
+    else:
+        vault_config = VaultConfig(
+            master_password_hash=hash_master_password(password), salt=generate_salt()
+        )
+        with Session() as session:
+            session.add(vault_config)
+            session.commit()
