@@ -28,13 +28,18 @@ Esta é a parte mais crítica do projeto — a que diferencia um "CRUD com senha
 
 | Camada | Escolha | Motivo |
 |---|---|---|
-| Linguagem | Python 3.12+ | <!-- TODO: confirmar versão instalada --> |
+| Linguagem | Python 3.12+ (gerenciado via `uv`) | `requires-python = ">=3.12"` no `pyproject.toml` |
+| Empacotamento/deps | `uv` | resolve dependências, lockfile (`uv.lock`) e venv numa ferramenta só |
 | Banco de dados | PostgreSQL | Modelagem relacional, migrations, mostra domínio de SQL |
-| ORM | SQLAlchemy + Alembic | Padrão de mercado; migrations versionadas |
-| Criptografia | `cryptography` (AES / Fernet), Argon2 (`argon2-cffi`) | Bibliotecas auditadas, nunca "rolar o próprio crypto" |
+| Driver do banco | `psycopg` (v3, extra `binary`) | driver moderno, mantido ativamente, com suporte a `async` se precisar no futuro |
+| ORM / migrations | SQLAlchemy + Alembic | Padrão de mercado; migrations versionadas (Alembic entra na Fase 2) |
+| Config | `pydantic-settings` | leitura tipada de variáveis de ambiente (`.env`) |
+| Criptografia | `cryptography` (AES / Fernet), `argon2-cffi` (hash + derivação de chave) | Bibliotecas auditadas, nunca "rolar o próprio crypto" |
 | CLI | `typer` | CLI com help automático, subcomandos, boa DX |
-| Interface (fase 2) | `textual` (TUI) | Visual mais rico sem sair do terminal |
-| Testes | `pytest` | Padrão do ecossistema |
+| Força de senha | `zxcvbn` | estimativa de entropia, não só regra de tamanho |
+| Interface (fase 9) | `textual` (TUI) | Visual mais rico sem sair do terminal |
+| Extras (fase 10) | `pyperclip`, `pyotp` | clipboard com auto-clear, 2FA via TOTP |
+| Testes / lint | `pytest`, `ruff` (dev) | Padrão do ecossistema |
 
 ## Estrutura do projeto
 
@@ -57,20 +62,30 @@ secure-vault/
 
 ## Como rodar
 
-<!-- TODO: preencher conforme o setup for avançando (instalação de dependências, criação do banco, primeiro comando da CLI) -->
+Pré-requisitos: [uv](https://docs.astral.sh/uv/) instalado e um PostgreSQL acessível.
+
+```
+git clone git@github.com:ReCroffi/secure-vault.git
+cd secure-vault
+uv sync                    # cria o venv e instala tudo que está travado no uv.lock
+cp .env.example .env       # preencher DATABASE_URL com suas credenciais locais
+```
+
+<!-- TODO: comandos da CLI (uv run secure-vault ...) serão documentados aqui a partir da Fase 5 -->
 
 ## Roadmap
 
-- [ ] Setup do projeto, dependências e conexão com Postgres
-- [ ] Modelagem do schema + primeira migration
-- [ ] Criação de vault (definição de senha mestra, salt, hash)
-- [ ] Autenticação e derivação de chave em memória
-- [ ] CRUD de credenciais criptografadas via CLI
-- [ ] Gerador de senha configurável
-- [ ] Indicador de força de senha
-- [ ] Busca/filtro de credenciais
-- [ ] Interface TUI (`textual`)
-- [ ] Extras: timeout de sessão, clipboard com auto-clear, 2FA na senha mestra
+- [x] Fase 0 — Setup do projeto e dependências (`uv`)
+- [ ] Fase 1 — Conexão com Postgres e configuração via `.env`
+- [ ] Fase 2 — Modelagem do schema + primeira migration (Alembic)
+- [ ] Fase 3 — Criação do vault (senha mestra, salt, hash)
+- [ ] Fase 4 — Autenticação e derivação de chave em memória
+- [ ] Fase 5 — CRUD de credenciais criptografadas via CLI
+- [ ] Fase 6 — Gerador de senha configurável
+- [ ] Fase 7 — Indicador de força de senha
+- [ ] Fase 8 — Busca/filtro de credenciais
+- [ ] Fase 9 — Interface TUI (`textual`)
+- [ ] Fase 10 — Extras: timeout de sessão, clipboard com auto-clear, 2FA na senha mestra
 
 <!-- TODO: acompanhar o progresso marcando os checkboxes conforme avança -->
 
