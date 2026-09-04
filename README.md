@@ -82,7 +82,10 @@ uv run secure-vault get <service_name>             # mostra as credenciais de um
 uv run secure-vault list                           # lista id, serviço e login de tudo, sem revelar senha
 uv run secure-vault update <id>                    # troca a senha de uma credencial (mostra de quem antes)
 uv run secure-vault delete <id>                    # apaga uma credencial (pede confirmação)
+uv run secure-vault generate                       # gera uma senha aleatoria (nao salva nada)
 ```
+
+`generate` aceita `--length` e as flags `--use-uppercase`/`--use-lowercase`/`--use-digits`/`--use-symbols` (e seus opostos `--no-use-*`), todas ligadas por padrão. Sai com código 1 se todas vierem desligadas. Ver `uv run secure-vault generate --help`.
 
 Todo comando que acessa dados pede a senha mestra. Use `list` para descobrir o `id` de uma credencial antes de `update`/`delete`.
 
@@ -108,7 +111,7 @@ A fixture `patch_session` (`tests/conftest.py`) troca a sessão do banco pela de
 - [x] Fase 4 — Autenticação e derivação de chave em memória
 - [x] Fase 5 — CRUD de credenciais criptografadas via CLI
 - [x] Testes automatizados (Fases 0-5) — banco de testes isolado, cobertura de `credentials.py`, CI no GitHub Actions
-- [ ] Fase 6 — Gerador de senha configurável
+- [x] Fase 6 — Gerador de senha configurável
 - [ ] Fase 7 — Indicador de força de senha
 - [ ] Fase 8 — Busca/filtro de credenciais
 - [ ] Fase 9 — Interface TUI (`textual`)
