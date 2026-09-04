@@ -33,10 +33,15 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Instala o uv
-        run: curl -LsSf https://astral.sh/install.sh | sh
+        run: |
+          set -o pipefail
+          curl -LsSf https://astral.sh/uv/install.sh | sh
 
       - name: Adiciona o uv ao PATH
         run: echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+
+      - name: Confirma que o uv foi instalado
+        run: uv --version
 
       - name: Instala as dependências
         run: uv sync --locked
