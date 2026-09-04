@@ -24,6 +24,7 @@ def init():
         typer.echo("Vault criado com sucesso")
     except ValueError as e:
         typer.echo(e)
+        raise typer.Exit(code=1)
 
 
 def main() -> None:
