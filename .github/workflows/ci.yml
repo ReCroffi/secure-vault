@@ -1,0 +1,48 @@
+name: CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: vault_ci
+          POSTGRES_PASSWORD: vault_ci
+          POSTGRES_DB: vault_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      DATABASE_URL: postgresql+psycopg://vault_ci:vault_ci@localhost:5432/vault_test
+      TEST_DATABASE_URL: postgresql+psycopg://vault_ci:vault_ci@localhost:5432/vault_test
+      KDF_ALGORITHM: argon2id
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Instala o uv
+        run: curl -LsSf https://astral.sh/install.sh | sh
+
+      - name: Adiciona o uv ao PATH
+        run: echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+
+      - name: Instala as dependências
+        run: uv sync --locked
+
+      - name: Aplica as migrations
+        run: uv run alembic upgrade head
+
+      - name: Roda a suite de testes
+        run: uv run pytest tests/ -v

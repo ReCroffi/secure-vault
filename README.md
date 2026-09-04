@@ -1,5 +1,7 @@
 # Secure Vault
 
+![CI](https://github.com/ReCroffi/secure-vault/actions/workflows/ci.yml/badge.svg)
+
 <!-- TODO: se quiser trocar o nome do projeto, troca aqui e no diretório/repo -->
 
 > TODO: uma frase de efeito curta descrevendo o projeto (ex: "Gerenciador de senhas local, com criptografia ponta a ponta, feito para aprender segurança na prática").
@@ -84,6 +86,19 @@ uv run secure-vault delete <id>                    # apaga uma credencial (pede 
 
 Todo comando que acessa dados pede a senha mestra. Use `list` para descobrir o `id` de uma credencial antes de `update`/`delete`.
 
+## Testes
+
+Os testes rodam contra um banco isolado (`vault_test`), no mesmo Postgres do ambiente de desenvolvimento — nunca contra o banco real.
+
+```
+docker exec secure-vault-db psql -U croffiadm -d postgres -c "CREATE DATABASE vault_test;"   # só na primeira vez
+# preencher TEST_DATABASE_URL no .env, apontando pro vault_test
+DATABASE_URL=<TEST_DATABASE_URL do seu .env> uv run alembic upgrade head                      # só na primeira vez / após novas migrations
+uv run pytest tests/ -v
+```
+
+A fixture `patch_session` (`tests/conftest.py`) troca a sessão do banco pela de teste automaticamente e limpa as tabelas depois de cada teste — não precisa fazer nada manual entre execuções. O CI (GitHub Actions) roda essa mesma suite a cada push/PR em `main`/`develop`.
+
 ## Roadmap
 
 - [x] Fase 0 — Setup do projeto e dependências (`uv`)
@@ -92,6 +107,7 @@ Todo comando que acessa dados pede a senha mestra. Use `list` para descobrir o `
 - [x] Fase 3 — Criação do vault (senha mestra, salt, hash)
 - [x] Fase 4 — Autenticação e derivação de chave em memória
 - [x] Fase 5 — CRUD de credenciais criptografadas via CLI
+- [x] Testes automatizados (Fases 0-5) — banco de testes isolado, cobertura de `credentials.py`, CI no GitHub Actions
 - [ ] Fase 6 — Gerador de senha configurável
 - [ ] Fase 7 — Indicador de força de senha
 - [ ] Fase 8 — Busca/filtro de credenciais
