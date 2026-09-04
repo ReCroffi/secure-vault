@@ -1,7 +1,10 @@
 from vault.db.credentials import (
+    delete_credential,
+    get_all_credentials,
     get_credential_by_id,
     get_credentials_by_service,
     save_credential,
+    update_credential_password,
 )
 
 
@@ -42,3 +45,55 @@ def test_get_credential_by_id_encontra():
 def test_get_credential_by_id_nao_encontra():
     consulta_id = get_credential_by_id(999)
     assert consulta_id is None
+
+
+def test_get_all_credentials_vazio():
+    assert get_all_credentials() == []
+
+
+def test_get_all_credentials_retorna_todas():
+    service_name_b = "teste_b"
+    login_user_name_b = "teste_b@teste.b.com"
+    encrypted_password_b = b"senha_teste_b"
+    service_name_a = "teste_a"
+    login_user_name_a = "teste_a@teste.a.com"
+    encrypted_password_a = b"senha_teste_a"
+    save_credential(service_name_b, login_user_name_b, encrypted_password_b)
+    save_credential(service_name_a, login_user_name_a, encrypted_password_a)
+    credentials = get_all_credentials()
+    assert len(credentials) == 2 and credentials[0].service_name == service_name_a
+
+
+def test_delete_credential_apaga():
+    service_name = "teste"
+    login_user_name = "teste@teste.com"
+    encrypted_password = b"senha_teste"
+    save_credential(service_name, login_user_name, encrypted_password)
+    credentials = get_credentials_by_service(service_name)
+    credential_id = credentials[0].id
+    deleted = delete_credential(credential_id)
+    assert deleted is True
+    assert get_credential_by_id(credential_id) is None
+
+
+def test_delete_credential_nao_encontra():
+    deleted = delete_credential(999)
+    assert deleted is False
+
+
+def test_update_credential_password_atualiza():
+    service_name = "teste"
+    login_user_name = "teste@teste.com"
+    encrypted_password = b"senha_teste"
+    save_credential(service_name, login_user_name, encrypted_password)
+    credentials = get_credentials_by_service(service_name)
+    credential_id = credentials[0].id
+    new_encrypted_password = b"nova_senha"
+    updated = update_credential_password(credential_id, new_encrypted_password)
+    assert updated is True
+    check_updated_pass = get_credential_by_id(credential_id)
+    assert check_updated_pass.encrypted_password == new_encrypted_password
+
+
+def test_update_credential_password_nao_encontra():
+    assert update_credential_password(999, b"senha_qualquer") is False
