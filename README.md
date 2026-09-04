@@ -71,7 +71,18 @@ uv sync                    # cria o venv e instala tudo que está travado no uv.
 cp .env.example .env       # preencher DATABASE_URL com suas credenciais locais
 ```
 
-<!-- TODO: comandos da CLI (uv run secure-vault ...) serão documentados aqui a partir da Fase 5 -->
+### Comandos da CLI
+
+```
+uv run secure-vault init                          # cria o vault, define a senha mestra
+uv run secure-vault add <service_name> <username>  # guarda uma credencial (pede a senha do serviço)
+uv run secure-vault get <service_name>             # mostra as credenciais de um serviço, com a senha decifrada
+uv run secure-vault list                           # lista id, serviço e login de tudo, sem revelar senha
+uv run secure-vault update <id>                    # troca a senha de uma credencial (mostra de quem antes)
+uv run secure-vault delete <id>                    # apaga uma credencial (pede confirmação)
+```
+
+Todo comando que acessa dados pede a senha mestra. Use `list` para descobrir o `id` de uma credencial antes de `update`/`delete`.
 
 ## Roadmap
 
@@ -80,7 +91,7 @@ cp .env.example .env       # preencher DATABASE_URL com suas credenciais locais
 - [x] Fase 2 — Modelagem do schema + primeira migration (Alembic)
 - [x] Fase 3 — Criação do vault (senha mestra, salt, hash)
 - [x] Fase 4 — Autenticação e derivação de chave em memória
-- [ ] Fase 5 — CRUD de credenciais criptografadas via CLI
+- [x] Fase 5 — CRUD de credenciais criptografadas via CLI
 - [ ] Fase 6 — Gerador de senha configurável
 - [ ] Fase 7 — Indicador de força de senha
 - [ ] Fase 8 — Busca/filtro de credenciais
