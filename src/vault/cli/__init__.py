@@ -1,6 +1,7 @@
 import typer
 
 from vault.core.crypto import decrypt_password, encrypt_password
+from vault.core.generator import generate_password
 from vault.core.master_password import create_vault, login
 from vault.db.credentials import (
     delete_credential,
@@ -150,4 +151,25 @@ def update_credential(credential_id: int):
         typer.echo("Senha atualizada")
     else:
         typer.echo("Não encontrado")
+        raise typer.Exit(code=1)
+
+
+@app.command()
+def generate(
+    length: int = typer.Option(16, help="Tamanho da senha(número inteiro)-padrão 16"),
+    use_uppercase: bool = typer.Option(True, help="Incluir letras maiúsculas"),
+    use_lowercase: bool = typer.Option(
+        True, help="Incluir letras minúsculas - padrão True"
+    ),
+    use_digits: bool = typer.Option(True, help="Incluir dígitos - padrão True"),
+    use_symbols: bool = typer.Option(True, help="Incluir símbolos - padrão True"),
+):
+
+    try:
+        password = generate_password(
+            length, use_uppercase, use_lowercase, use_digits, use_symbols
+        )
+        typer.echo(password)
+    except ValueError as e:
+        typer.echo(e)
         raise typer.Exit(code=1)
