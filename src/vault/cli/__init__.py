@@ -135,6 +135,11 @@ def update_credential(credential_id: int):
     nao existir.
     """
     key = _get_key()
+    credential = get_credential_by_id(credential_id)
+    if credential is None:
+        typer.echo("Não encontrado")
+        raise typer.Exit(code=1)
+    typer.echo(f"Alterando senha de {credential.service_name}: {credential.login}")
     password = typer.prompt(
         "Entre a nova senha", hide_input=True, confirmation_prompt=True
     )
