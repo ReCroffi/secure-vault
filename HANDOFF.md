@@ -64,6 +64,7 @@ Ideias já levantadas, nenhuma bloqueante:
 - `pyperclip` (já está nas dependências) pra copiar a senha no `get` em vez de imprimir na tela.
 - `[tool.ruff]` no `pyproject.toml` — hoje o ruff roda só com as regras padrão.
 - `src/vault/db/engine.py` tem um `I001` pré-existente (falta linha em branco entre os grupos de import). Abrir o arquivo e dar `Ctrl+S` resolve.
+- **Multi-usuário (fora do roteiro das 11 fases, ideia futura):** hoje o vault é single-user — `vault_config` tem uma linha só (`scalar_one()` quebraria com mais de uma) e `credentials` não tem FK pra dono nenhum. Se dois usuários do mesmo PC usassem o app, os dois decifrariam as mesmas credenciais com a mesma senha mestra, sem isolamento. Pra suportar isso: tabela de usuários, cada um com seu próprio `salt`/hash (chave de cifragem derivada por usuário), e `credentials` ganhando `user_id` como FK — toda query passaria a filtrar por ele. É migration nova, não é ajuste pequeno.
 
 ## Roteiro e decisões de design
 
