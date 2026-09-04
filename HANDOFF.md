@@ -2,69 +2,64 @@
 
 # Handoff — onde paramos
 
-Recado pra próxima sessão do Claude Code (outra máquina ou sessão nova).
+Recado pra próxima sessão do Claude Code (outra máquina ou sessão nova). Atualizado em 04/09/2026, saindo do desktop pro notebook (faculdade).
 
 ## Antes de fazer qualquer coisa
 
-Leia `feedback-teaching-style.md` na memória (`~/.claude/projects/.../memory/`), se existir nesta máquina. Se não existir, **recrie a partir do resumo abaixo** — foi o que aconteceu na sessão do desktop, a memória não estava lá.
+Leia `feedback-teaching-style.md` e `project-secure-vault-state.md` na memória (`~/.claude/projects/.../memory/`), se existirem nesta máquina — a memória é local por máquina, então no notebook provavelmente **não vai existir ainda**. Se não existir, recrie a partir do resumo abaixo.
 
 - **Nunca escreva código de aplicação por conta própria.** Explique o conceito, dê a assinatura da função e o que ela precisa fazer, e deixe o usuário escrever. Revise e aponte erros com precisão, sem reescrever por ele.
-- **Exceção:** infra/config (`.gitignore`, `docker-compose.yml`, `.vscode/settings.json`, `pyproject.toml`, README, este arquivo) e **docstrings** — o usuário já delegou docstrings explicitamente e várias vezes.
-- **Comandos de git e comandos de CLI que são o ponto da lição são o usuário quem roda** — a menos que ele delegue ("faz isso pra mim", "faz pra mim"), o que acontece com alguma frequência.
+- **Exceção:** infra/config (`.gitignore`, `docker-compose.yml`, `.github/workflows/*`, `.vscode/settings.json`, `pyproject.toml`, README, este arquivo) e **docstrings** — o usuário já delegou docstrings explicitamente e várias vezes.
+- **Comandos de git, GitHub (PR/merge) e CLI que são o ponto da lição são o usuário quem roda** — a menos que ele delegue explicitamente ("faz isso pra mim", "faz você"). Cuidado com falsa delegação: "vamo fazer o commit"/"vamos de PR e merge" **não é** pedir pra rodar o comando, é só concordância de que chegou a hora — prepare o comando/mensagem e devolva pra ele rodar.
 - **Passos pequenos, ritmo de confirmação:** explica um pedaço → usuário escreve → Claude revisa → repete.
 - O usuário é disléxico — feedback com mais de um ponto vai **numerado e separado**, nunca numa frase corrida.
-- Ele pede a mensagem de commit pronta ("sou ruim pra msg"). Padrão do repo: conventional commits, português sem acento, `feat(vault):` / `fix(...)` / `docs:`.
+- Ele pede a mensagem de commit e o título/descrição de PR prontos ("sou ruim pra msg"). Padrão do repo: conventional commits, português sem acento, `feat(vault):` / `fix(...)` / `test(vault):` / `docs:`.
+- Ele esquece com frequência: o comando de rodar a suite de testes, e o de rodar o app. Relembrar proativamente sem esperar ele perguntar. Ambos estão também na "Cola do Terminal" (ver abaixo).
 
-## Ambiente nesta máquina (desktop) — já resolvido
+## Ambiente numa máquina nova
 
-- `.env` criado a partir do `.env.example` (senha local em `.env`, gitignored — não repetir aqui).
-- Postgres de pé via `docker compose up -d` (container `secure-vault-db`, volume `vault_pgdata`).
-- Migrations aplicadas (`alembic upgrade head`).
-- Senha mestra de teste: definida localmente ao rodar `init`, não versionar aqui.
-- Banco tem 2 credenciais de teste, ambas `github` (`renan` id=1, `renan-trabalho` id=2). A senha da id=1 foi trocada várias vezes em teste.
-- `.vscode/settings.json` (gitignored, local): Error Lens desligado, ghost text de IA desligado, ruff com format + fixAll + organizeImports no `Ctrl+S`, interpretador apontando pro `.venv`.
-- Copilot **não está instalado** nesta máquina; quem dá ghost text é a extensão `openai.chatgpt`.
+1. `cp .env.example .env`, preencher `DATABASE_URL` (usuário/senha reais do Postgres local).
+2. `docker compose up -d` (sobe o Postgres, container `secure-vault-db`).
+3. `uv sync`, `uv run alembic upgrade head` (aplica migrations no banco de dev).
+4. `uv run secure-vault init` (cria o vault, define a senha mestra).
+5. Pra rodar a suite de testes, precisa **também** de um banco `vault_test`:
+   ```
+   docker exec secure-vault-db psql -U <usuario> -d postgres -c "CREATE DATABASE vault_test;"
+   ```
+   Preencher `TEST_DATABASE_URL` no `.env` (mesmo usuário/senha, banco `vault_test`), depois:
+   ```
+   DATABASE_URL=<TEST_DATABASE_URL do .env> uv run alembic upgrade head
+   uv run pytest tests/ -v
+   ```
 
-**Numa máquina nova, repetir:** `cp .env.example .env` (preencher a senha nos 2 lugares) → `docker compose up -d` → `uv run alembic upgrade head` → `uv run secure-vault init`.
+Referência rápida (comandos, pegadinhas de terminal, conceitos que já escorregaram): **Cola do Terminal** — https://claude.ai/code/artifact/37b1ceed-2da7-493e-a34f-a567d0223dfb
 
 ## Estado do projeto
 
-Branch: `feature/05-crud-credenciais`. Fases 0-4 mergeadas em `develop`.
+Branch: `develop`, sincronizada com `origin/develop`. `main` ainda está parada no primeiro release (Fases 0-5, PR #7) — **ainda não teve o segundo merge `develop → main`**.
 
-**Fase 5 (CRUD de credenciais) — quase fechada.** Comandos prontos, testados ponta a ponta:
+**Atenção pra quando isso acontecer:** o repo tem `delete_branch_on_merge: true` no GitHub. Numa PR `develop → main`, o GitHub trata `develop` como "branch de origem" e apaga ela do remoto também. Já aconteceu uma vez (Fase 5) e precisou recriar. Avisar o usuário antes de fazer esse merge.
 
-| comando | estado |
-|---|---|
-| `init`, `add` | ok (o `add` agora autentica antes de pedir a senha do serviço) |
-| `get <service_name>` | ok — decifra e mostra; sai com 1 se não achar |
-| `list` | ok — mostra id, serviço e login, **sem senha**; sai com 0 se o vault estiver vazio |
-| `delete <id>` | ok — mostra serviço/login na confirmação antes de apagar |
-| `update <id>` | funciona, **mas falta o pedaço C** (ver abaixo) |
+Fases concluídas e já mergeadas em `develop` (cada uma foi feature branch → PR → merge, branch local apagada depois):
 
-Funções em `src/vault/db/credentials.py`: `save_credential`, `get_credentials_by_service`, `get_all_credentials`, `delete_credential`, `update_credential_password`, `get_credential_by_id`. Todas com docstring.
+- Fases 0-5: setup, Postgres/`.env`, schema+Alembic, criação do vault, autenticação, CRUD de credenciais.
+- **Testes automatizados** (fase extra, inserida antes da 6): banco `vault_test` isolado, `Settings.test_database_url`, fixtures `db_engine`/`patch_session` (autouse, monkeypatch + limpeza) em `tests/conftest.py`, CI no GitHub Actions (`.github/workflows/ci.yml`, roda em push/PR de `main`/`develop`).
+- **Fase 6** — gerador de senha configurável: `generate_password` (`src/vault/core/generator.py`, usa `secrets`), comando `secure-vault generate`.
+- **Fase 7** — indicador de força de senha: `check_password_strength` (`src/vault/core/strength.py`, usa `zxcvbn`), helper `_prompt_password_with_strength_check` na CLI, usado em `add`/`update` (mostra a força, insiste se for fraca, a menos que o usuário confirme usar mesmo assim).
 
-### PRÓXIMO PASSO — pedaço C da tarefa 3
+Suite de testes atual: 15 testes, todos passando (`tests/integration/` pra tudo que toca banco, `tests/unit/` pra funções puras — gerador e força de senha).
 
-O `update` ainda pede a senha nova **sem dizer de quem ela é**. Se errar o id, troca a senha da credencial errada.
+### PRÓXIMO PASSO — Fase 8: busca/filtro de credenciais
 
-Falta, no `update_credential` (em `src/vault/cli/__init__.py`), entre o `key = _get_key()` e o prompt da senha nova:
+Ainda não começada. Ideia geral (a confirmar com o usuário antes de quebrar em passos): um jeito de filtrar a listagem do `list` — por trecho do nome do serviço, por exemplo. Já existe `get_credentials_by_service` (busca exata) em `src/vault/db/credentials.py`; filtro parcial provavelmente precisa de uma query nova com `LIKE`/`ILIKE`, ou de um novo parâmetro opcional em `get_all_credentials`.
 
-1. buscar com `get_credential_by_id(credential_id)`;
-2. se `None` → `typer.echo("Não encontrado")` + `raise typer.Exit(code=1)`;
-3. se achou → `typer.echo` mostrando serviço e login;
-4. só então pedir a senha nova. O resto fica igual.
+### Depois da Fase 8
 
-O `delete` já foi ajustado assim e serve de modelo. **Sem `typer.confirm` aqui** — no `update` o usuário ainda digita a senha nova duas vezes, o que já confirma a intenção; confirmação demais vira ruído e ensina a ignorar a do `delete`, que importa.
-
-### Depois disso
-
-Fase 5 fechada → **primeiro merge pra `main`** (é o marco previsto no roteiro).
-
-Ideias já levantadas, nenhuma bloqueante:
-- `pyperclip` (já está nas dependências) pra copiar a senha no `get` em vez de imprimir na tela.
-- `[tool.ruff]` no `pyproject.toml` — hoje o ruff roda só com as regras padrão.
-- `src/vault/db/engine.py` tem um `I001` pré-existente (falta linha em branco entre os grupos de import). Abrir o arquivo e dar `Ctrl+S` resolve.
-- **Multi-usuário (fora do roteiro das 11 fases, ideia futura):** hoje o vault é single-user — `vault_config` tem uma linha só (`scalar_one()` quebraria com mais de uma) e `credentials` não tem FK pra dono nenhum. Se dois usuários do mesmo PC usassem o app, os dois decifrariam as mesmas credenciais com a mesma senha mestra, sem isolamento. Pra suportar isso: tabela de usuários, cada um com seu próprio `salt`/hash (chave de cifragem derivada por usuário), e `credentials` ganhando `user_id` como FK — toda query passaria a filtrar por ele. É migration nova, não é ajuste pequeno.
+- Fase 9 — Interface TUI (`textual`).
+- Fase 10 — Extras: timeout de sessão, clipboard com auto-clear (`pyperclip`, já nas dependências), 2FA na senha mestra (`pyotp`, já nas dependências).
+- `pyperclip` pra copiar a senha no `get` em vez de imprimir na tela — ideia levantada, não bloqueante, pode caber em qualquer fase futura.
+- `[tool.ruff]` no `pyproject.toml` — hoje o ruff roda só com regras padrão. Tem 6 erros pré-existentes (migrations do Alembic, `Union` em vez de `|`; e um `I001` em `src/vault/db/engine.py`), nenhum deles das fases recentes.
+- **Multi-usuário** (fora do roteiro das 11 fases, ideia futura): hoje o vault é single-user — `vault_config` tem uma linha só e `credentials` não tem FK pra dono nenhum. Precisaria de tabela de usuários, salt/hash por usuário, e `user_id` como FK em `credentials`. Migration nova, não é ajuste pequeno.
 
 ## Roteiro e decisões de design
 
@@ -74,9 +69,11 @@ Ideias já levantadas, nenhuma bloqueante:
 - **Fase 5:** `delete` e `update` identificam por `id`, não por `service_name` — apagar por nome levaria todos os logins do serviço junto.
 - **Fase 5:** `get` consulta o banco **antes** de pedir a senha mestra (não autentica à toa se o serviço não existe). `list`, `delete` e `update` autenticam **antes** de consultar, porque a saída deles é informação sensível.
 - **Fase 5:** as buscas têm `ORDER BY` (`id`, e `service_name, id` no `get_all_credentials`) — sem isso o Postgres reembaralha a listagem a cada `UPDATE`.
+- **Testes:** banco de teste simples — segunda database (`vault_test`) no mesmo container Postgres, não um container separado ("ainda não é um projeto profissional que precisa de todo esse isolamento" — decisão do usuário).
+- **Fase 7:** o indicador de força **não bloqueia** o salvamento — só avisa e, se fraca, pede confirmação explícita antes de aceitar.
 
 ## Conceitos que já foram explicados (não precisa repetir do zero)
 
-`select`/`where` com coluna à esquerda e valor à direita · `.scalars().all()` · `session.get(Classe, pk)` · unit of work (atribuir ao atributo + `commit` gera o `UPDATE`) · `raise typer.Exit(code=1)` (a classe sozinha não faz nada) · `@app.command("nome")` pra separar o nome do comando do nome da função · guard clause.
+`select`/`where` com coluna à esquerda e valor à direita · `.scalars().all()` · `session.get(Classe, pk)` · unit of work (atribuir ao atributo + `commit` gera o `UPDATE`) · `raise typer.Exit(code=1)` (a classe sozinha não faz nada) · `@app.command("nome")` pra separar o nome do comando do nome da função · guard clause · fixtures de pytest (`@pytest.fixture`, `yield` pra limpeza, `autouse`) · `monkeypatch.setattr` (corrigir onde é **usado**, não onde é definido) · valor padrão de parâmetro (`= None`, `typer.Option(valor, ...)`) · `while True` com `return`/`break` como ponto de saída · `pytest.raises(..., match=...)`.
 
-**Ponto que ainda escorrega:** confundir o **argumento** de uma função com o seu **retorno** (apareceu 3x — `session.get`, `get_credential_by_id`). Quando acontecer, ler a assinatura separando pela seta: "recebe X → devolve Y".
+**Ponto que já escorregou mais de uma vez:** confundir o **argumento** de uma função com o seu **retorno** (`session.get`, `get_credential_by_id`). Quando acontecer, ler a assinatura separando pela seta: "recebe X → devolve Y".
