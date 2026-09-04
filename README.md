@@ -87,6 +87,8 @@ uv run secure-vault generate                       # gera uma senha aleatoria (n
 
 `generate` aceita `--length` e as flags `--use-uppercase`/`--use-lowercase`/`--use-digits`/`--use-symbols` (e seus opostos `--no-use-*`), todas ligadas por padrão. Sai com código 1 se todas vierem desligadas. Ver `uv run secure-vault generate --help`.
 
+`add` e `update` mostram a força da senha digitada (nota de 0 a 4, via `zxcvbn`) e insistem enquanto ela vier fraca (nota abaixo de 3) — a menos que você confirme explicitamente que quer usar mesmo assim.
+
 Todo comando que acessa dados pede a senha mestra. Use `list` para descobrir o `id` de uma credencial antes de `update`/`delete`.
 
 ## Testes
@@ -112,7 +114,7 @@ A fixture `patch_session` (`tests/conftest.py`) troca a sessão do banco pela de
 - [x] Fase 5 — CRUD de credenciais criptografadas via CLI
 - [x] Testes automatizados (Fases 0-5) — banco de testes isolado, cobertura de `credentials.py`, CI no GitHub Actions
 - [x] Fase 6 — Gerador de senha configurável
-- [ ] Fase 7 — Indicador de força de senha
+- [x] Fase 7 — Indicador de força de senha
 - [ ] Fase 8 — Busca/filtro de credenciais
 - [ ] Fase 9 — Interface TUI (`textual`)
 - [ ] Fase 10 — Extras: timeout de sessão, clipboard com auto-clear, 2FA na senha mestra
