@@ -7,6 +7,7 @@ from vault.db.credentials import (
     get_all_credentials,
     get_credentials_by_service,
     save_credential,
+    update_credential_password,
 )
 
 app = typer.Typer()
@@ -45,11 +46,15 @@ def _get_key() -> bytes:
 
 @app.command()
 def add(service_name: str, username: str):
-    """Guarda uma nova credencial, cifrando a senha do servico."""
+    """Guarda uma nova credencial, cifrando a senha do servico.
+
+    Autentica antes de pedir a senha do servico: se a senha mestra estiver
+    errada, o comando encerra sem ter feito o usuario digitar nada.
+    """
+    key = _get_key()
     password = typer.prompt(
         "Senha do serviço", hide_input=True, confirmation_prompt=True
     )
-    key = _get_key()
     encrypted_password = encrypt_password(password, key)
     save_credential(service_name, username, encrypted_password)
     typer.echo("Adicionado com sucesso")
@@ -107,6 +112,28 @@ def delete(credential_id: int):
     deleted = delete_credential(credential_id)
     if deleted:
         typer.echo("Apagado com sucesso")
+    else:
+        typer.echo("Não encontrado")
+        raise typer.Exit(code=1)
+
+
+@app.command("update")
+def update_credential(credential_id: int):
+    """Troca a senha de uma credencial, identificada pelo id.
+
+    Autentica antes de pedir a senha nova: se a senha mestra estiver
+    errada, o comando encerra sem ter feito o usuario digitar nada.
+    Rode `secure-vault list` para descobrir o id. Sai com codigo 1 se o id
+    nao existir.
+    """
+    key = _get_key()
+    password = typer.prompt(
+        "Entre a nova senha", hide_input=True, confirmation_prompt=True
+    )
+    encrypted_password = encrypt_password(password, key)
+    updated = update_credential_password(credential_id, encrypted_password)
+    if updated:
+        typer.echo("Senha atualizada")
     else:
         typer.echo("Não encontrado")
         raise typer.Exit(code=1)
