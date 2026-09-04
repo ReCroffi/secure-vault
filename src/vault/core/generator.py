@@ -9,7 +9,11 @@ def generate_password(
     use_digits: bool = True,
     use_symbols: bool = True,
 ) -> str:
+    """Gera uma senha aleatoria usando o CSPRNG do sistema (`secrets`), nunca `random`.
 
+    Cada flag liga/desliga um conjunto de caracteres na pool de sorteio.
+    Levanta ValueError se todas vierem False (pool ficaria vazia).
+    """
     components = [
         (string.ascii_uppercase, use_uppercase),
         (string.ascii_lowercase, use_lowercase),
