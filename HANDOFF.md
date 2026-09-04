@@ -17,11 +17,11 @@ Leia `feedback-teaching-style.md` na memória (`~/.claude/projects/.../memory/`)
 
 ## Ambiente nesta máquina (desktop) — já resolvido
 
-- `.env` criado a partir do `.env.example`, senha local `vault_local_dev`.
+- `.env` criado a partir do `.env.example` (senha local em `.env`, gitignored — não repetir aqui).
 - Postgres de pé via `docker compose up -d` (container `secure-vault-db`, volume `vault_pgdata`).
 - Migrations aplicadas (`alembic upgrade head`).
-- Senha mestra de teste: `1234`.
-- Banco tem 2 credenciais de teste, ambas `github` (`renan` id=1, `renan-trabalho` id=2). A senha da id=1 foi trocada várias vezes em teste — o valor atual é `remexendo`.
+- Senha mestra de teste: definida localmente ao rodar `init`, não versionar aqui.
+- Banco tem 2 credenciais de teste, ambas `github` (`renan` id=1, `renan-trabalho` id=2). A senha da id=1 foi trocada várias vezes em teste.
 - `.vscode/settings.json` (gitignored, local): Error Lens desligado, ghost text de IA desligado, ruff com format + fixAll + organizeImports no `Ctrl+S`, interpretador apontando pro `.venv`.
 - Copilot **não está instalado** nesta máquina; quem dá ghost text é a extensão `openai.chatgpt`.
 

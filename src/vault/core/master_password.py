@@ -53,18 +53,15 @@ def login(password: str) -> bytes:
         raise ValueError("Senha mestra incorreta")
 
 
-def vault_exists() -> bool:
-    with Session() as session:
-        return session.execute(select(VaultConfig)).scalar_one_or_none() is not None
-
-
 def create_vault(password: str) -> None:
-    if vault_exists():
-        raise ValueError("Vault já existente")
-    else:
+    with Session() as session:
+        if session.execute(select(VaultConfig)).scalar_one_or_none() is not None:
+            raise ValueError("Vault já existente")
+
         vault_config = VaultConfig(
-            master_password_hash=hash_master_password(password), salt=generate_salt()
+            master_password_hash=hash_master_password(password),
+            salt=generate_salt(),
         )
-        with Session() as session:
-            session.add(vault_config)
-            session.commit()
+
+        session.add(vault_config)
+        session.commit()
