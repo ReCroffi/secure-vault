@@ -13,4 +13,4 @@ def decrypt_password(encrypted_password: bytes, key: bytes) -> str:
     try:
         return Fernet(fernet_key).decrypt(encrypted_password).decode()
     except InvalidToken as e:
-        raise ValueError("Não foi possível decifrar a senha") from e
+        raise ValueError("Não foi possível decifrar a senha (credencial corrompida ou chave inválida)") from e
