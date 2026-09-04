@@ -5,6 +5,7 @@ from vault.core.master_password import create_vault, login
 from vault.db.credentials import (
     delete_credential,
     get_all_credentials,
+    get_credential_by_id,
     get_credentials_by_service,
     save_credential,
     update_credential_password,
@@ -108,7 +109,14 @@ def delete(credential_id: int):
     nao existir.
     """
     _get_key()
-    typer.confirm("Tem certeza?", abort=True)
+    credential = get_credential_by_id(credential_id)
+    if credential is None:
+        typer.echo("Não encontrado")
+        raise typer.Exit(code=1)
+
+    typer.confirm(
+        f"Deseja apagar {credential.service_name}: {credential.login}", abort=True
+    )
     deleted = delete_credential(credential_id)
     if deleted:
         typer.echo("Apagado com sucesso")

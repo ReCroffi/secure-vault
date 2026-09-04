@@ -66,3 +66,14 @@ def update_credential_password(credential_id: int, encrypted_password: bytes) ->
         credential.encrypted_password = encrypted_password
         session.commit()
         return True
+
+
+def get_credential_by_id(credential_id: int) -> Credential | None:
+    """Busca uma credencial pela chave primaria. None se nao existir.
+
+    Usada pela CLI para exibir servico e login antes de apagar ou alterar,
+    para o usuario conferir que digitou o id certo.
+    """
+    with Session() as session:
+        credential = session.get(Credential, credential_id)
+        return credential
