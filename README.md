@@ -1,5 +1,7 @@
 # Secure Vault
 
+![CI](https://github.com/ReCroffi/secure-vault/actions/workflows/ci.yml/badge.svg)
+
 <!-- TODO: se quiser trocar o nome do projeto, troca aqui e no diretório/repo -->
 
 > TODO: uma frase de efeito curta descrevendo o projeto (ex: "Gerenciador de senhas local, com criptografia ponta a ponta, feito para aprender segurança na prática").
@@ -78,11 +80,30 @@ uv run secure-vault init                          # cria o vault, define a senha
 uv run secure-vault add <service_name> <username>  # guarda uma credencial (pede a senha do serviço)
 uv run secure-vault get <service_name>             # mostra as credenciais de um serviço, com a senha decifrada
 uv run secure-vault list                           # lista id, serviço e login de tudo, sem revelar senha
+uv run secure-vault list --search <termo>          # lista só os serviços cujo nome contém o termo (sem diferenciar maiúscula/minúscula)
 uv run secure-vault update <id>                    # troca a senha de uma credencial (mostra de quem antes)
 uv run secure-vault delete <id>                    # apaga uma credencial (pede confirmação)
+uv run secure-vault generate                       # gera uma senha aleatoria (nao salva nada)
 ```
 
+`generate` aceita `--length` e as flags `--use-uppercase`/`--use-lowercase`/`--use-digits`/`--use-symbols` (e seus opostos `--no-use-*`), todas ligadas por padrão. Sai com código 1 se todas vierem desligadas. Ver `uv run secure-vault generate --help`.
+
+`add` e `update` mostram a força da senha digitada (nota de 0 a 4, via `zxcvbn`) e insistem enquanto ela vier fraca (nota abaixo de 3) — a menos que você confirme explicitamente que quer usar mesmo assim.
+
 Todo comando que acessa dados pede a senha mestra. Use `list` para descobrir o `id` de uma credencial antes de `update`/`delete`.
+
+## Testes
+
+Os testes rodam contra um banco isolado (`vault_test`), no mesmo Postgres do ambiente de desenvolvimento — nunca contra o banco real.
+
+```
+docker exec secure-vault-db psql -U croffiadm -d postgres -c "CREATE DATABASE vault_test;"   # só na primeira vez
+# preencher TEST_DATABASE_URL no .env, apontando pro vault_test
+DATABASE_URL=<TEST_DATABASE_URL do seu .env> uv run alembic upgrade head                      # só na primeira vez / após novas migrations
+uv run pytest tests/ -v
+```
+
+A fixture `patch_session` (`tests/conftest.py`) troca a sessão do banco pela de teste automaticamente e limpa as tabelas depois de cada teste — não precisa fazer nada manual entre execuções. O CI (GitHub Actions) roda essa mesma suite a cada push/PR em `main`/`develop`.
 
 ## Roadmap
 
@@ -92,9 +113,10 @@ Todo comando que acessa dados pede a senha mestra. Use `list` para descobrir o `
 - [x] Fase 3 — Criação do vault (senha mestra, salt, hash)
 - [x] Fase 4 — Autenticação e derivação de chave em memória
 - [x] Fase 5 — CRUD de credenciais criptografadas via CLI
-- [ ] Fase 6 — Gerador de senha configurável
-- [ ] Fase 7 — Indicador de força de senha
-- [ ] Fase 8 — Busca/filtro de credenciais
+- [x] Testes automatizados (Fases 0-5) — banco de testes isolado, cobertura de `credentials.py`, CI no GitHub Actions
+- [x] Fase 6 — Gerador de senha configurável
+- [x] Fase 7 — Indicador de força de senha
+- [x] Fase 8 — Busca/filtro de credenciais
 - [ ] Fase 9 — Interface TUI (`textual`)
 - [ ] Fase 10 — Extras: timeout de sessão, clipboard com auto-clear, 2FA na senha mestra
 

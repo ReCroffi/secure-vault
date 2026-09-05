@@ -1,13 +1,16 @@
 import typer
 
 from vault.core.crypto import decrypt_password, encrypt_password
+from vault.core.generator import generate_password
 from vault.core.master_password import create_vault, login
+from vault.core.strength import check_password_strength
 from vault.db.credentials import (
     delete_credential,
     get_all_credentials,
     get_credential_by_id,
     get_credentials_by_service,
     save_credential,
+    search_credentials_by_service,
     update_credential_password,
 )
 
@@ -24,6 +27,7 @@ def init():
         typer.echo("Vault criado com sucesso")
     except ValueError as e:
         typer.echo(e)
+        raise typer.Exit(code=1)
 
 
 def main() -> None:
@@ -45,17 +49,38 @@ def _get_key() -> bytes:
         raise typer.Exit(code=1)
 
 
+def _prompt_password_with_strength_check(prompt_text: str) -> str:
+    """Pede uma senha, mostra a forca dela, e insiste se ela for fraca.
+
+    Repete o prompt enquanto o score vier abaixo de 3, a menos que o
+    usuario confirme explicitamente que quer usar a senha fraca mesmo assim.
+    """
+    while True:
+        password = typer.prompt(prompt_text, hide_input=True, confirmation_prompt=True)
+        score, warning = check_password_strength(password)
+        typer.echo(f"Força da senha: {score}/4")
+        if warning != "":
+            typer.echo(warning)
+        if score >= 3:
+            return password
+        else:
+            confirmacao = typer.confirm("Senha fraca, deseja usar mesmo assim?")
+            if confirmacao:
+                return password
+
+
 @app.command()
 def add(service_name: str, username: str):
     """Guarda uma nova credencial, cifrando a senha do servico.
 
     Autentica antes de pedir a senha do servico: se a senha mestra estiver
-    errada, o comando encerra sem ter feito o usuario digitar nada.
+    errada, o comando encerra sem ter feito o usuario digitar nada. Mostra
+    a forca da senha digitada e insiste enquanto ela vier fraca, a menos
+    que o usuario confirme usar mesmo assim.
     """
     key = _get_key()
-    password = typer.prompt(
-        "Senha do serviço", hide_input=True, confirmation_prompt=True
-    )
+    prompt_text = "Senha do serviço"
+    password = _prompt_password_with_strength_check(prompt_text)
     encrypted_password = encrypt_password(password, key)
     save_credential(service_name, username, encrypted_password)
     typer.echo("Adicionado com sucesso")
@@ -79,24 +104,6 @@ def get(service_name: str):
         password = decrypt_password(credential.encrypted_password, key)
         username = credential.login
         typer.echo(f"Service: {service}\nLogin: {username}\nPassword: {password}")
-
-
-@app.command("list")
-def list_credentials():
-    """Lista os servicos e logins guardados, sem revelar nenhuma senha.
-
-    Autentica antes de consultar: a propria lista de servicos e informacao
-    sensivel. Vault vazio e resposta valida, entao sai com codigo 0.
-    """
-    _get_key()
-    credentials = get_all_credentials()
-    if not credentials:
-        typer.echo("Vault vazio")
-    for credential in credentials:
-        service = credential.service_name
-        username = credential.login
-        credential_id = credential.id
-        typer.echo(f"Service: {service}\nLogin: {username}\nID: {credential_id}")
 
 
 @app.command()
@@ -132,7 +139,8 @@ def update_credential(credential_id: int):
     Autentica antes de pedir a senha nova: se a senha mestra estiver
     errada, o comando encerra sem ter feito o usuario digitar nada.
     Rode `secure-vault list` para descobrir o id. Sai com codigo 1 se o id
-    nao existir.
+    nao existir. Mostra a forca da senha nova e insiste enquanto ela vier
+    fraca, a menos que o usuario confirme usar mesmo assim.
     """
     key = _get_key()
     credential = get_credential_by_id(credential_id)
@@ -140,9 +148,8 @@ def update_credential(credential_id: int):
         typer.echo("Não encontrado")
         raise typer.Exit(code=1)
     typer.echo(f"Alterando senha de {credential.service_name}: {credential.login}")
-    password = typer.prompt(
-        "Entre a nova senha", hide_input=True, confirmation_prompt=True
-    )
+    prompt_text = "Entre com a nova senha"
+    password = _prompt_password_with_strength_check(prompt_text)
     encrypted_password = encrypt_password(password, key)
     updated = update_credential_password(credential_id, encrypted_password)
     if updated:
@@ -150,3 +157,57 @@ def update_credential(credential_id: int):
     else:
         typer.echo("Não encontrado")
         raise typer.Exit(code=1)
+
+
+@app.command()
+def generate(
+    length: int = typer.Option(16, help="Tamanho da senha(número inteiro)-padrão 16"),
+    use_uppercase: bool = typer.Option(True, help="Incluir letras maiúsculas"),
+    use_lowercase: bool = typer.Option(
+        True, help="Incluir letras minúsculas - padrão True"
+    ),
+    use_digits: bool = typer.Option(True, help="Incluir dígitos - padrão True"),
+    use_symbols: bool = typer.Option(True, help="Incluir símbolos - padrão True"),
+):
+    """Gera uma senha aleatoria e mostra na tela, sem salvar em lugar nenhum.
+
+    Sai com codigo 1 se todas as opcoes de tipo de caractere vierem desligadas.
+    """
+    try:
+        password = generate_password(
+            length, use_uppercase, use_lowercase, use_digits, use_symbols
+        )
+        typer.echo(password)
+    except ValueError as e:
+        typer.echo(e)
+        raise typer.Exit(code=1)
+
+
+@app.command("list")
+def list_credentials(
+    search: str | None = typer.Option(
+        None,
+        help="Busca de registros por nome - Padrão: None -> retorna todos registros",
+    ),
+):
+    """Lista os servicos e logins guardados, sem revelar nenhuma senha.
+
+    Autentica antes de consultar: a propria lista de servicos e informacao
+    sensivel. Sem --search lista tudo; com --search filtra por trecho do
+    nome do servico, sem diferenciar caixa. Vazio e resposta valida nos dois
+    casos, entao sai com codigo 0.
+    """
+    _get_key()
+    if search is None:
+        credentials = get_all_credentials()
+        if not credentials:
+            typer.echo("Vault vazio")
+    else:
+        credentials = search_credentials_by_service(search)
+        if not credentials:
+            typer.echo(f"Nenhum servico corresponde a '{search}'")
+    for credential in credentials:
+        service = credential.service_name
+        username = credential.login
+        credential_id = credential.id
+        typer.echo(f"Service: {service}\nLogin: {username}\nID: {credential_id}")
