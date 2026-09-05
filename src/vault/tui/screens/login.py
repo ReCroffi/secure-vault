@@ -3,6 +3,7 @@ from textual.screen import Screen
 from textual.widgets import Input
 
 from vault.core.master_password import login
+from vault.tui.screens.list import ListScreen
 
 
 class LoginScreen(Screen):
@@ -13,6 +14,6 @@ class LoginScreen(Screen):
         try:
             key = login(event.value)
             self.app.key = key
-            self.app.switch_screen(Screen())
+            self.app.switch_screen(ListScreen())
         except ValueError as e:
             print(e)
