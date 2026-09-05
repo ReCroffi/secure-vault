@@ -77,3 +77,19 @@ def get_credential_by_id(credential_id: int) -> Credential | None:
     with Session() as session:
         credential = session.get(Credential, credential_id)
         return credential
+
+
+def search_credentials_by_service(term: str) -> list[Credential]:
+    """Busca credenciais cujo service_name contenha o termo, sem diferenciar caixa.
+
+    Usa ILIKE do Postgres com o termo cercado de '%' (coringa de qualquer
+    sequencia de caracteres). Se o termo tiver '%' ou '_', eles funcionam
+    como coringa tambem, sem escape (aceito de proposito, YAGNI).
+    """
+    with Session() as session:
+        query = (
+            select(Credential)
+            .where(Credential.service_name.ilike(f"%{term}%"))
+            .order_by(Credential.service_name, Credential.id)
+        )
+        return list(session.execute(query).scalars().all())

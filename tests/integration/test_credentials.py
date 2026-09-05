@@ -4,6 +4,7 @@ from vault.db.credentials import (
     get_credential_by_id,
     get_credentials_by_service,
     save_credential,
+    search_credentials_by_service,
     update_credential_password,
 )
 
@@ -97,3 +98,54 @@ def test_update_credential_password_atualiza():
 
 def test_update_credential_password_nao_encontra():
     assert update_credential_password(999, b"senha_qualquer") is False
+
+
+def test_search_credentials_by_service_casa_meio_do_nome():
+    service_name_1 = "teste1"
+    login_user_name_1 = "teste1@teste.com"
+    encrypted_password_1 = b"senha_teste1"
+    service_name_2 = "teste2"
+    login_user_name_2 = "teste2@teste.com"
+    encrypted_password_2 = b"senha_teste2"
+    service_name_3 = "conta-gmail-trabalho"
+    login_user_name_3 = "teste@gmail.com"
+    encrypted_password_3 = b"senha_teste3"
+    save_credential(service_name_1, login_user_name_1, encrypted_password_1)
+    save_credential(service_name_2, login_user_name_2, encrypted_password_2)
+    save_credential(service_name_3, login_user_name_3, encrypted_password_3)
+    credential = search_credentials_by_service("gmail")
+    assert len(credential) == 1 and credential[0].service_name == service_name_3
+
+
+def test_search_credentials_by_service_ignora_maiuscula_minuscula():
+    service_name_1 = "teste1"
+    login_user_name_1 = "teste1@teste.com"
+    encrypted_password_1 = b"senha_teste1"
+    service_name_2 = "teste2"
+    login_user_name_2 = "teste2@teste.com"
+    encrypted_password_2 = b"senha_teste2"
+    service_name_3 = "cOnTa-gMAIl-traBaLhO"
+    login_user_name_3 = "teste@gmail.com"
+    encrypted_password_3 = b"senha_teste3"
+    save_credential(service_name_1, login_user_name_1, encrypted_password_1)
+    save_credential(service_name_2, login_user_name_2, encrypted_password_2)
+    save_credential(service_name_3, login_user_name_3, encrypted_password_3)
+    credential = search_credentials_by_service("gmail")
+    assert len(credential) == 1 and credential[0].service_name == service_name_3
+
+
+def test_search_credentials_by_service_sem_match():
+    service_name_1 = "teste1"
+    login_user_name_1 = "teste1@teste.com"
+    encrypted_password_1 = b"senha_teste1"
+    service_name_2 = "teste2"
+    login_user_name_2 = "teste2@teste.com"
+    encrypted_password_2 = b"senha_teste2"
+    service_name_3 = "cOnTa-gMAIl-traBaLhO"
+    login_user_name_3 = "teste@gmail.com"
+    encrypted_password_3 = b"senha_teste3"
+    save_credential(service_name_1, login_user_name_1, encrypted_password_1)
+    save_credential(service_name_2, login_user_name_2, encrypted_password_2)
+    save_credential(service_name_3, login_user_name_3, encrypted_password_3)
+    credential = search_credentials_by_service("netflix")
+    assert credential == []

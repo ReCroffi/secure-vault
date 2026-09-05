@@ -80,6 +80,7 @@ uv run secure-vault init                          # cria o vault, define a senha
 uv run secure-vault add <service_name> <username>  # guarda uma credencial (pede a senha do serviço)
 uv run secure-vault get <service_name>             # mostra as credenciais de um serviço, com a senha decifrada
 uv run secure-vault list                           # lista id, serviço e login de tudo, sem revelar senha
+uv run secure-vault list --search <termo>          # lista só os serviços cujo nome contém o termo (sem diferenciar maiúscula/minúscula)
 uv run secure-vault update <id>                    # troca a senha de uma credencial (mostra de quem antes)
 uv run secure-vault delete <id>                    # apaga uma credencial (pede confirmação)
 uv run secure-vault generate                       # gera uma senha aleatoria (nao salva nada)
@@ -115,7 +116,7 @@ A fixture `patch_session` (`tests/conftest.py`) troca a sessão do banco pela de
 - [x] Testes automatizados (Fases 0-5) — banco de testes isolado, cobertura de `credentials.py`, CI no GitHub Actions
 - [x] Fase 6 — Gerador de senha configurável
 - [x] Fase 7 — Indicador de força de senha
-- [ ] Fase 8 — Busca/filtro de credenciais
+- [x] Fase 8 — Busca/filtro de credenciais
 - [ ] Fase 9 — Interface TUI (`textual`)
 - [ ] Fase 10 — Extras: timeout de sessão, clipboard com auto-clear, 2FA na senha mestra
 
