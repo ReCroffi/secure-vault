@@ -10,6 +10,7 @@ from vault.db.credentials import (
     get_credential_by_id,
     get_credentials_by_service,
     save_credential,
+    search_credentials_by_service,
     update_credential_password,
 )
 
@@ -105,24 +106,6 @@ def get(service_name: str):
         typer.echo(f"Service: {service}\nLogin: {username}\nPassword: {password}")
 
 
-@app.command("list")
-def list_credentials():
-    """Lista os servicos e logins guardados, sem revelar nenhuma senha.
-
-    Autentica antes de consultar: a propria lista de servicos e informacao
-    sensivel. Vault vazio e resposta valida, entao sai com codigo 0.
-    """
-    _get_key()
-    credentials = get_all_credentials()
-    if not credentials:
-        typer.echo("Vault vazio")
-    for credential in credentials:
-        service = credential.service_name
-        username = credential.login
-        credential_id = credential.id
-        typer.echo(f"Service: {service}\nLogin: {username}\nID: {credential_id}")
-
-
 @app.command()
 def delete(credential_id: int):
     """Apaga uma credencial pelo id. Irreversivel, pede confirmacao.
@@ -198,3 +181,33 @@ def generate(
     except ValueError as e:
         typer.echo(e)
         raise typer.Exit(code=1)
+
+
+@app.command("list")
+def list_credentials(
+    search: str | None = typer.Option(
+        None,
+        help="Busca de registros por nome - Padrão: None -> retorna todos registros",
+    ),
+):
+    """Lista os servicos e logins guardados, sem revelar nenhuma senha.
+
+    Autentica antes de consultar: a propria lista de servicos e informacao
+    sensivel. Sem --search lista tudo; com --search filtra por trecho do
+    nome do servico, sem diferenciar caixa. Vazio e resposta valida nos dois
+    casos, entao sai com codigo 0.
+    """
+    _get_key()
+    if search is None:
+        credentials = get_all_credentials()
+        if not credentials:
+            typer.echo("Vault vazio")
+    else:
+        credentials = search_credentials_by_service(search)
+        if not credentials:
+            typer.echo(f"Nenhum servico corresponde a '{search}'")
+    for credential in credentials:
+        service = credential.service_name
+        username = credential.login
+        credential_id = credential.id
+        typer.echo(f"Service: {service}\nLogin: {username}\nID: {credential_id}")
