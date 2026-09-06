@@ -2,7 +2,7 @@
 
 # Handoff — onde paramos
 
-Recado pra próxima sessão do Claude Code (outra máquina ou sessão nova). Atualizado em 05/09/2026, no desktop.
+Recado pra próxima sessão do Claude Code (outra máquina ou sessão nova). Atualizado em 06/09/2026, no desktop.
 
 ## Antes de fazer qualquer coisa
 
@@ -36,7 +36,7 @@ Referência rápida (comandos, pegadinhas de terminal, conceitos que já escorre
 
 ## Estado do projeto
 
-Branch: `develop`, sincronizada com `origin/develop` **e com `main`** — ambas em `50b17d3` (05/09/2026). O segundo merge `develop → main` (PR #15) já aconteceu, fechando o release de testes automatizados + Fases 6, 7 e 8.
+Branch atual: `feature/09-tui`, commitada e **pusheada** pro remoto (`origin/feature/09-tui`), ainda **sem PR aberta** pra `develop`. `develop`/`main` continuam em `50b17d3` (05/09/2026) — o segundo merge `develop → main` (PR #15) fechou o release de testes automatizados + Fases 6, 7 e 8.
 
 **Sobre o `delete_branch_on_merge: true` do GitHub:** numa PR `develop → main`, o GitHub trata `develop` como "branch de origem" e apaga ela do remoto. Já aconteceu duas vezes (Fase 5 e agora de novo) e nas duas foi preciso recriar (`git reset --hard main` na `develop` local + `git push origin develop`). **Vai se repetir na próxima PR `develop → main`** — avisar o usuário antes, mas ele já sabe o procedimento.
 
@@ -50,9 +50,13 @@ Fases concluídas e já mergeadas em `develop` **e em `main`** (cada uma foi fea
 
 Suite de testes atual: 18 testes, todos passando (`tests/integration/` pra tudo que toca banco, `tests/unit/` pra funções puras — gerador e força de senha).
 
-### PRÓXIMO PASSO — Fase 9: interface TUI (`textual`)
+### Fase 9 — interface TUI (`textual`): CRUD completo, falta só testes
 
-Não começada — **nenhum brainstorm feito ainda**, diferente da Fase 8 (que já chegou com design aprovado). Antes de escrever qualquer código, fazer o brainstorm de design com o usuário: quais telas/fluxos a TUI cobre, como ela reusa (ou não) as funções de `src/vault/db/` e `src/vault/core/` que já existem, e como a autenticação da senha mestra funciona numa interface que fica aberta (sessão) em vez de um comando que roda e termina.
+Brainstorm de arquitetura já feito e aprovado: chave derivada guardada em `self.app.key` (uma vez por sessão, não recalculada por comando como na CLI), pacote `src/vault/tui/` com `app.py` + um arquivo por tela em `screens/`, entry point `secure-vault tui`. Nenhuma lógica de negócio foi duplicada — todas as telas chamam as mesmas funções de `core/`/`db/` que a CLI usa.
+
+Telas prontas (`login.py`, `list.py`, `detail.py`, `add.py`, `confirm.py`, `edit.py`) — listar, buscar ao vivo, ver detalhe, adicionar, apagar (com modal de confirmação), editar senha, tudo reaproveitando o aviso de força de senha (`check_password_strength`) igual ao CLI. Detalhes de implementação e os dois bugs reais encontrados no caminho (erro de login mudo por causa de `print()`; crash ao apagar por causa da ordem de execução do `dismiss()` do Textual) estão registrados na memória — ver `project_secure_vault_state.md`.
+
+**PRÓXIMO PASSO: testes automatizados da TUI.** Nenhum teste cobre `src/vault/tui/` ainda. Textual tem um harness próprio pra isso (`Pilot`, via `app.run_test()`) — não dá pra testar como os testes de `db/`/`core/` existentes. Depois de cobrir isso, a Fase 9 fecha: commit final, decidir junto com o usuário quando abrir a PR `feature/09-tui → develop` (e se já vale seguir com `develop → main`, já que o roteiro marca a Fase 9 como "versão apresentável visualmente, bom momento pra GIF/screenshot no README" — considerar gerar um novo GIF de demo, igual ao de 05/09/2026, mas agora mostrando o CRUD completo, não só login+lista+busca).
 
 ### Depois da Fase 9
 
@@ -77,4 +81,10 @@ Não começada — **nenhum brainstorm feito ainda**, diferente da Fase 8 (que j
 
 `select`/`where` com coluna à esquerda e valor à direita · `.scalars().all()` · `session.get(Classe, pk)` · unit of work (atribuir ao atributo + `commit` gera o `UPDATE`) · `raise typer.Exit(code=1)` (a classe sozinha não faz nada) · `@app.command("nome")` pra separar o nome do comando do nome da função · guard clause · fixtures de pytest (`@pytest.fixture`, `yield` pra limpeza, `autouse`) · `monkeypatch.setattr` (corrigir onde é **usado**, não onde é definido) · valor padrão de parâmetro (`= None`, `typer.Option(valor, ...)`) · `while True` com `return`/`break` como ponto de saída · `pytest.raises(..., match=...)` · `ILIKE` (LIKE case-insensitive, extensão do Postgres) · `%` como coringa do LIKE · `.ilike()` como método de coluna no SQLAlchemy.
 
-**Ponto que já escorregou mais de uma vez:** confundir o **argumento** de uma função com o seu **retorno** (`session.get`, `get_credential_by_id`). Quando acontecer, ler a assinatura separando pela seta: "recebe X → devolve Y".
+Conceitos de Textual (Fase 9): `App`/`Screen`, `compose()`/`yield`, `on_mount`, `push_screen`/`switch_screen`/`pop_screen`, `query_one("#id", Tipo)`, `DataTable`, `Input.Submitted` vs `Input.Changed`, `BINDINGS`+`action_<nome>`, `self.notify(msg, severity=...)`, `on_screen_resume` (dispara quando uma tela empilhada por cima fecha e essa volta a ficar ativa — `on_mount` só roda uma vez, na primeira montagem), `ModalScreen[T]` + `self.dismiss(valor)` + `push_screen(tela, callback)`.
+
+**Pontos que já escorregaram mais de uma vez:**
+- Confundir o **argumento** de uma função com o seu **retorno** (`session.get`, `get_credential_by_id`). Ler a assinatura separando pela seta: "recebe X → devolve Y".
+- O nome da action no `BINDINGS` (segundo item da tupla) tem que bater exatamente com o sufixo do método `action_<nome>` — divergência não dá erro, a tecla só vira no-op silencioso. Aconteceu 2x na Fase 9.
+- `event.input.id` (identidade do widget, o que você escolheu no `compose`) não é o mesmo que `event.input.password` (se o campo mascara o texto) — são atributos diferentes que só coincidem por acaso quando só um campo do formulário é de senha.
+- `self.app.pop_screen()` dentro de uma callback de `push_screen(tela, callback)`: a callback roda **antes** do `pop_screen()` automático da própria `dismiss()`, então um pop manual ali tira a tela errada da pilha.

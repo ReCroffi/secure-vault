@@ -51,7 +51,8 @@ secure-vault/
 │   ├── cli/        # comandos da interface de linha de comando
 │   ├── core/        # regras de negócio: criptografia, geração de senha, autenticação
 │   ├── db/          # models SQLAlchemy, repositórios, sessão do banco
-│   └── config/      # carregamento de configuração e variáveis de ambiente
+│   ├── config/      # carregamento de configuração e variáveis de ambiente
+│   └── tui/         # interface interativa (Textual) — um arquivo por tela em tui/screens/
 ├── tests/
 │   ├── unit/
 │   └── integration/
@@ -91,6 +92,22 @@ uv run secure-vault generate                       # gera uma senha aleatoria (n
 `add` e `update` mostram a força da senha digitada (nota de 0 a 4, via `zxcvbn`) e insistem enquanto ela vier fraca (nota abaixo de 3) — a menos que você confirme explicitamente que quer usar mesmo assim.
 
 Todo comando que acessa dados pede a senha mestra. Use `list` para descobrir o `id` de uma credencial antes de `update`/`delete`.
+
+### Interface TUI
+
+```
+uv run secure-vault tui
+```
+
+Abre uma interface interativa (Textual) que fica com a sessão aberta — pede a senha mestra uma vez só, ao entrar, em vez de a cada comando como na CLI.
+
+| Tela | Atalhos | O que faz |
+|---|---|---|
+| Login | `Enter` | autentica e deriva a chave de sessão |
+| Lista | `a` adicionar · digitar filtra ao vivo · `Enter` na linha abre o detalhe | lista/busca credenciais (ordenadas por id) |
+| Detalhe | `e` editar senha · `d` apagar · `Esc` voltar | mostra a credencial com a senha decifrada |
+| Adicionar/Editar | `Enter` | salva; se a senha for fraca, avisa e pede confirmação (mesma regra do `add`/`update` da CLI) |
+| Confirmar (modal) | `s` sim · `n`/`Esc` não | usado antes de apagar |
 
 ## Testes
 
