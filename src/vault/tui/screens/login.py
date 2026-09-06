@@ -16,4 +16,4 @@ class LoginScreen(Screen):
             self.app.key = key
             self.app.switch_screen(ListScreen())
         except ValueError as e:
-            print(e)
+            self.notify(str(e), severity="error", title="Erro")
