@@ -21,7 +21,8 @@ class ListScreen(Screen):
     def _popular_tabela(self, tabela: DataTable, search_term: str = "") -> None:
         tabela.clear()
         if search_term == "":
-            for credential in get_all_credentials():
+            credentials = get_all_credentials()
+            for credential in sorted(credentials, key=lambda c: c.id):
                 tabela.add_row(
                     credential.id,
                     credential.service_name,
@@ -30,7 +31,8 @@ class ListScreen(Screen):
                 )
 
         else:
-            for credential in search_credentials_by_service(search_term):
+            credentials = search_credentials_by_service(search_term)
+            for credential in sorted(credentials, key=lambda c: c.id):
                 tabela.add_row(
                     credential.id,
                     credential.service_name,
