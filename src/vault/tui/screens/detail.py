@@ -1,10 +1,12 @@
+from typing import ClassVar
+
 from textual.app import ComposeResult
 from textual.screen import Screen
 from textual.widgets import Static
 
 from vault.core.crypto import decrypt_password
 from vault.db.credentials import get_credential_by_id
-from typing import ClassVar
+
 
 class DetailScreen(Screen):
     BINDINGS: ClassVar[list[tuple[str, str, str]]] = [("escape", "voltar", "Voltar")]
