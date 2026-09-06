@@ -12,8 +12,8 @@ from vault.tui.screens.detail import DetailScreen
 class ListScreen(Screen):
     BINDINGS: ClassVar[list[tuple[str, str, str]]] = [
         ("a", "adicionar", "Adicionar"),
-        ("escape", "voltar", "Voltar"),
     ]
+
     def compose(self) -> ComposeResult:
         yield DataTable(id="ListaServicos", cursor_type="row")
         yield Input(placeholder="Buscar por serviço...", id="busca")
@@ -23,11 +23,11 @@ class ListScreen(Screen):
         if search_term == "":
             for credential in get_all_credentials():
                 tabela.add_row(
-                credential.id,
-                credential.service_name,
-                credential.login,
-                key=str(credential.id),
-            )
+                    credential.id,
+                    credential.service_name,
+                    credential.login,
+                    key=str(credential.id),
+                )
 
         else:
             for credential in search_credentials_by_service(search_term):
@@ -47,14 +47,13 @@ class ListScreen(Screen):
         tabela = self.query_one("#ListaServicos", DataTable)
         self._popular_tabela(tabela, event.value)
 
-
-        
-
-
     def on_data_table_row_selected(self, event: DataTable.RowSelected) -> None:
         key = int(event.row_key.value)
         self.app.push_screen(DetailScreen(key))
 
     def action_adicionar(self) -> None:
-        self.app.push_screen(AddScreen())   
+        self.app.push_screen(AddScreen())
 
+    def on_screen_resume(self) -> None:
+        tabela = self.query_one("#ListaServicos", DataTable)
+        self._popular_tabela(tabela)
