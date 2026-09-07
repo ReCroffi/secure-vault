@@ -40,7 +40,7 @@ Esta é a parte mais crítica do projeto — a que diferencia um "CRUD com senha
 | CLI | `typer` | CLI com help automático, subcomandos, boa DX |
 | Força de senha | `zxcvbn` | estimativa de entropia, não só regra de tamanho |
 | Interface (fase 9) | `textual` (TUI) | Visual mais rico sem sair do terminal |
-| Extras (fase 10) | `pyperclip`, `pyotp` | clipboard com auto-clear, 2FA via TOTP |
+| Extras (fase 10, sugestão futura) | `pyperclip`, `pyotp` | clipboard com auto-clear, 2FA via TOTP |
 | Testes / lint | `pytest`, `ruff` (dev) | Padrão do ecossistema |
 
 ## Estrutura do projeto
@@ -120,7 +120,9 @@ DATABASE_URL=<TEST_DATABASE_URL do seu .env> uv run alembic upgrade head        
 uv run pytest tests/ -v
 ```
 
-A fixture `patch_session` (`tests/conftest.py`) troca a sessão do banco pela de teste automaticamente e limpa as tabelas depois de cada teste — não precisa fazer nada manual entre execuções. O CI (GitHub Actions) roda essa mesma suite a cada push/PR em `main`/`develop`.
+A fixture `patch_session` (`tests/conftest.py`) troca a sessão do banco pela de teste automaticamente e limpa as tabelas antes **e** depois de cada teste — não precisa fazer nada manual entre execuções. O CI (GitHub Actions) roda essa mesma suite a cada push/PR em `main`/`develop`.
+
+`tests/tui/` cobre a interface Textual com o harness `Pilot` (`app.run_test()`), simulando teclas/foco em vez de rodar um terminal de verdade: login (senha certa/errada), listar, buscar ao vivo, adicionar, ver detalhe, editar senha e apagar com confirmação.
 
 ## Roadmap
 
@@ -134,8 +136,8 @@ A fixture `patch_session` (`tests/conftest.py`) troca a sessão do banco pela de
 - [x] Fase 6 — Gerador de senha configurável
 - [x] Fase 7 — Indicador de força de senha
 - [x] Fase 8 — Busca/filtro de credenciais
-- [ ] Fase 9 — Interface TUI (`textual`)
-- [ ] Fase 10 — Extras: timeout de sessão, clipboard com auto-clear, 2FA na senha mestra
+- [x] Fase 9 — Interface TUI (`textual`), com testes automatizados cobrindo todas as telas
+- [ ] Fase 10 (sugestão futura, fora do escopo fechado do projeto) — Extras: timeout de sessão, clipboard com auto-clear, 2FA na senha mestra
 
 <!-- TODO: acompanhar o progresso marcando os checkboxes conforme avança -->
 
