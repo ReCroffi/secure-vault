@@ -4,7 +4,7 @@
 
 <!-- TODO: se quiser trocar o nome do projeto, troca aqui e no diretório/repo -->
 
-> TODO: uma frase de efeito curta descrevendo o projeto (ex: "Gerenciador de senhas local, com criptografia ponta a ponta, feito para aprender segurança na prática").
+> Gerenciador de senhas local, com criptografia ponta a ponta, construído para aprofundar conhecimentos de segurança e aprimorar Python na prática.
 
 ## Sobre o projeto
 
@@ -143,12 +143,24 @@ A fixture `patch_session` (`tests/conftest.py`) troca a sessão do banco pela de
 
 ## Limitações conhecidas
 
-<!-- TODO: manter atualizado conforme o projeto evolui — é uma seção que mostra maturidade técnica para quem for avaliar o portfólio -->
+Este projeto tem fins educacionais/portfólio — as limitações abaixo são conhecidas e declaradas intencionalmente, não pontos cegos:
+
+- **Sem proteção contra memory dumping ou side-channel attacks.** A chave de criptografia vive em memória enquanto o processo roda; um ataque com acesso ao processo/RAM não é mitigado.
+- **Sem hardening de SO.** Não há sandboxing, restrição de permissões de arquivo além do padrão, ou proteção contra debugger anexado ao processo.
+- **Sem timeout de sessão.** Na TUI, a chave derivada fica válida por toda a sessão do processo, sem expirar por inatividade (item do backlog — ver Fase 10).
+- **Sem 2FA na senha mestra.** Autenticação depende só da senha mestra (item do backlog — ver Fase 10).
+- **Sem rate-limiting/lockout de tentativas.** A resistência a força bruta vem do custo computacional do Argon2id, não de bloqueio após N tentativas erradas.
+- **Single-user.** Um cofre = uma senha mestra; não há suporte a múltiplos usuários/perfis no mesmo banco.
+- **Busca (`ILIKE`) aceita coringas de `LIKE` sem escape.** Digitar `%` ou `_` no termo de busca funciona como coringa do SQL, não como caractere literal — comportamento aceito, não validado.
+- **Sem clipboard com auto-clear.** `get`/detalhe mostram a senha decifrada na tela; copiar e limpar a área de transferência automaticamente é item do backlog (Fase 10).
 
 ## Licença
 
-<!-- TODO: escolher uma licença (MIT é comum para portfólio) -->
+Distribuído sob a licença MIT — veja [`LICENSE`](LICENSE) para o texto completo.
 
 ## Autor
 
-<!-- TODO: seu nome, link do LinkedIn/GitHub, contato -->
+**Renan Croffi**
+
+- GitHub: [@ReCroffi](https://github.com/ReCroffi)
+- LinkedIn: [linkedin.com/in/renancroffi](https://linkedin.com/in/renancroffi)
