@@ -6,6 +6,8 @@ Recado pra próxima sessão do Claude Code (outra máquina ou sessão nova). Atu
 
 **Projeto fechado por hora ao final da Fase 9.** App funcional (CLI + TUI), cobertura de testes completa. Fase 10 virou sugestão de melhoria futura, não é mais fase obrigatória do roteiro — ver seção própria abaixo.
 
+**Pendência resolvida (2026-09-07):** `AddScreen`/`EditScreen` da TUI agora têm um botão "Gerar senha segura" que chama `generate_password(16)` (`src/vault/core/generator.py`), preenche o campo de senha e copia pro clipboard (`self.app.copy_to_clipboard`). Não deu pra usar atalho de teclado (`g`) como cogitado antes — `Input` focado captura toda tecla imprimível pra digitar, então o binding nunca disparava; botão clicável resolveu. Testes novos em `tests/tui/test_add.py` e `tests/tui/test_edit.py`. Falta: commit, PR `feature/10-gerador-tui → develop` (branch já criada e com as mudanças).
+
 ## Antes de fazer qualquer coisa
 
 Leia `feedback-teaching-style.md` e `projeto-secure-vault.md` na memória (`~/.claude/projects/.../memory/`), se existirem nesta máquina — a memória é local por máquina. Se não existir, recrie a partir do resumo abaixo.
