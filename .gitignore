@@ -27,3 +27,6 @@ htmlcov/
 
 # SO
 .DS_Store
+
+# Handoff local entre sessões/máquinas (não deve ir pro repo público)
+HANDOFF.md
