@@ -40,7 +40,7 @@ Esta é a parte mais crítica do projeto — a que diferencia um "CRUD com senha
 | CLI | `typer` | CLI com help automático, subcomandos, boa DX |
 | Força de senha | `zxcvbn` | estimativa de entropia, não só regra de tamanho |
 | Interface (fase 9) | `textual` (TUI) | Visual mais rico sem sair do terminal |
-| Extras (fase 10, sugestão futura) | `pyperclip`, `pyotp` | clipboard com auto-clear, 2FA via TOTP |
+| Extras (fase 10, sugestão futura) | `pyperclip`, `pyotp` | copiar senha na CLI (`get`) e clipboard com auto-clear, 2FA via TOTP — a TUI já copia a senha gerada via `App.copy_to_clipboard` nativo do Textual, sem essa lib |
 | Testes / lint | `pytest`, `ruff` (dev) | Padrão do ecossistema |
 
 ## Estrutura do projeto
@@ -99,7 +99,7 @@ Todo comando que acessa dados pede a senha mestra. Use `list` para descobrir o `
 uv run secure-vault tui
 ```
 
-![Demo da TUI: login, listar, buscar, adicionar e apagar credenciais](assets/secure-vault-demo.gif)
+![Demo da TUI: login, listar, buscar, adicionar (com gerador de senha) e apagar credenciais](assets/secure-vault-demo.gif)
 
 Abre uma interface interativa (Textual) que fica com a sessão aberta — pede a senha mestra uma vez só, ao entrar, em vez de a cada comando como na CLI.
 
@@ -108,8 +108,10 @@ Abre uma interface interativa (Textual) que fica com a sessão aberta — pede a
 | Login | `Enter` | autentica e deriva a chave de sessão |
 | Lista | `a` adicionar · digitar filtra ao vivo · `Enter` na linha abre o detalhe | lista/busca credenciais (ordenadas por id) |
 | Detalhe | `e` editar senha · `d` apagar · `Esc` voltar | mostra a credencial com a senha decifrada |
-| Adicionar/Editar | `Enter` | salva; se a senha for fraca, avisa e pede confirmação (mesma regra do `add`/`update` da CLI) |
+| Adicionar/Editar | `Enter` salva · botão "Gerar senha segura" preenche o campo com `generate_password(16)` e copia pro clipboard | salva; se a senha for fraca, avisa e pede confirmação (mesma regra do `add`/`update` da CLI) |
 | Confirmar (modal) | `s` sim · `n`/`Esc` não | usado antes de apagar |
+
+O botão de gerar senha reaproveita a mesma função da CLI (`generate_password`, ver Fase 6) — sem duplicar lógica. Um atalho de teclado (`g`) foi cogitado primeiro, mas descartado: um `Input` com foco captura toda tecla imprimível antes que ela vire atalho de tela.
 
 ## Testes
 
@@ -154,7 +156,7 @@ Este projeto tem fins educacionais/portfólio — as limitações abaixo são co
 - **Sem rate-limiting/lockout de tentativas.** A resistência a força bruta vem do custo computacional do Argon2id, não de bloqueio após N tentativas erradas.
 - **Single-user.** Um cofre = uma senha mestra; não há suporte a múltiplos usuários/perfis no mesmo banco.
 - **Busca (`ILIKE`) aceita coringas de `LIKE` sem escape.** Digitar `%` ou `_` no termo de busca funciona como coringa do SQL, não como caractere literal — comportamento aceito, não validado.
-- **Sem clipboard com auto-clear.** `get`/detalhe mostram a senha decifrada na tela; copiar e limpar a área de transferência automaticamente é item do backlog (Fase 10).
+- **Sem clipboard com auto-clear.** O gerador de senha na TUI já copia a senha gerada pro clipboard (`App.copy_to_clipboard`, via OSC 52 — não funciona no Terminal.app do macOS), mas sem expirar sozinho depois de um tempo. `get`/detalhe continuam só mostrando a senha decifrada na tela, sem opção de copiar. Limpeza automática do clipboard é item do backlog (Fase 10).
 
 ## Licença
 
