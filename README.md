@@ -99,6 +99,8 @@ Todo comando que acessa dados pede a senha mestra. Use `list` para descobrir o `
 uv run secure-vault tui
 ```
 
+![Demo da TUI: login, listar, buscar, adicionar e apagar credenciais](assets/secure-vault-demo.gif)
+
 Abre uma interface interativa (Textual) que fica com a sessão aberta — pede a senha mestra uma vez só, ao entrar, em vez de a cada comando como na CLI.
 
 | Tela | Atalhos | O que faz |
