@@ -13,6 +13,7 @@ from vault.db.credentials import (
     search_credentials_by_service,
     update_credential_password,
 )
+from vault.tui.app import VaultApp
 
 app = typer.Typer()
 
@@ -211,3 +212,9 @@ def list_credentials(
         username = credential.login
         credential_id = credential.id
         typer.echo(f"Service: {service}\nLogin: {username}\nID: {credential_id}")
+
+
+@app.command()
+def tui():
+    """Abre a interface interativa (TUI) do vault."""
+    VaultApp().run()
