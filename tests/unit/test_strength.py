@@ -1,3 +1,5 @@
+"""Testes unitarios da avaliacao de forca de senha (`vault.core.strength`)."""
+
 from vault.core.generator import generate_password
 from vault.core.strength import check_password_strength
 

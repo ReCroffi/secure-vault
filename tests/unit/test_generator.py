@@ -1,3 +1,5 @@
+"""Testes unitarios do gerador de senha aleatoria (`vault.core.generator`)."""
+
 import pytest
 
 from vault.core.generator import generate_password

@@ -1,3 +1,5 @@
+"""Tela de cadastro de uma credencial nova (servico + login + senha)."""
+
 from typing import ClassVar
 
 from textual.app import ComposeResult
@@ -14,6 +16,10 @@ class AddScreen(Screen):
     BINDINGS: ClassVar[list[tuple[str, str, str]]] = [
         ("escape", "cancelar", "Voltar"),
     ]
+    # Fica True depois que o usuario ja viu o aviso de senha fraca e apertou
+    # Enter de novo confirmando "quero usar mesmo assim". Reseta pra False
+    # sempre que o campo de senha muda, pra nao "vazar" a confirmacao pra
+    # uma senha diferente da que foi avaliada.
     senha_fraca_confirmada: bool = False
 
     def compose(self) -> ComposeResult:
@@ -26,6 +32,7 @@ class AddScreen(Screen):
         )
 
     def on_input_submitted(self, event: Input.Submitted) -> None:
+        # So age quando o Enter foi dado no campo de senha (ultimo da tela).
         if event.input.id == "password":
             service_name = self.query_one("#service_name", Input).value
             login = self.query_one("#login", Input).value
@@ -36,6 +43,8 @@ class AddScreen(Screen):
                 save_credential(service_name, login, encrypted_password)
                 self.app.pop_screen()
             else:
+                # Primeira vez com senha fraca: nao salva ainda, so avisa e
+                # arma a flag - o proximo Enter (sem mudar a senha) confirma.
                 self.senha_fraca_confirmada = True
                 self.notify(
                     f"Senha fraca: {warning}. Pressione Enter novamente para confirmar ou Esc para cancelar.",

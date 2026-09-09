@@ -1,3 +1,5 @@
+"""Testes end-to-end da ListScreen (tabela de credenciais + busca ao vivo)."""
+
 import pytest
 from textual.widgets import DataTable
 

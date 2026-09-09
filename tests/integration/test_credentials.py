@@ -1,3 +1,6 @@
+"""Testes de integracao do CRUD de credenciais (`vault.db.credentials`),
+rodando contra o banco de teste de verdade (ver `tests/conftest.py`)."""
+
 from vault.db.credentials import (
     delete_credential,
     get_all_credentials,

@@ -1,3 +1,9 @@
+"""Tela de troca de senha de uma credencial existente.
+
+Mesma logica de confirmacao de senha fraca do AddScreen (ver comentarios
+la), so que so pede a senha nova - servico e login nao mudam.
+"""
+
 from typing import ClassVar
 
 from textual.app import ComposeResult
@@ -16,7 +22,7 @@ class EditScreen(Screen):
 
     def __init__(self, credential_id: int) -> None:
         super().__init__()
-        self.credential_id = credential_id
+        self.credential_id = credential_id  # id da credencial sendo editada
 
     def compose(self) -> ComposeResult:
         yield Input(placeholder="Nova senha", password=True, id="password")

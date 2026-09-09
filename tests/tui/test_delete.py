@@ -1,3 +1,6 @@
+"""Teste end-to-end de apagar credencial pela DetailScreen (tecla 'd' + 's'
+pra confirmar no ConfirmScreen)."""
+
 import pytest
 from textual.widgets import DataTable
 

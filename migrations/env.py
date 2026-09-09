@@ -1,3 +1,7 @@
+# Script do Alembic (gerado por `alembic init`, editado so nos pontos abaixo
+# ligados ao projeto). Roda toda vez que se faz `alembic upgrade`/`downgrade`
+# ou `alembic revision --autogenerate` (que compara `target_metadata` com o
+# schema atual do banco pra gerar uma migration nova).
 from logging.config import fileConfig
 
 from alembic import context

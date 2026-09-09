@@ -1,3 +1,6 @@
+"""Testes end-to-end da LoginScreen, simulando teclado via `app.run_test()`
+(pilot do Textual) - nao chamam `login()` direto, testam a tela inteira."""
+
 import pytest
 
 from vault.core.master_password import create_vault

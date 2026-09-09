@@ -1,3 +1,6 @@
+"""Teste de sanidade: confirma que a conexao com o banco de teste funciona,
+antes de confiar em qualquer outro teste de integracao."""
+
 from sqlalchemy import text
 
 

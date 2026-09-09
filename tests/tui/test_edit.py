@@ -1,3 +1,5 @@
+"""Testes end-to-end da EditScreen: troca de senha e botao gerador."""
+
 import pytest
 from textual.widgets import DataTable, Static
 

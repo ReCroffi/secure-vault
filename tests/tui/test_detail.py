@@ -1,3 +1,6 @@
+"""Teste end-to-end da DetailScreen: confere que servico/login/senha
+decifrada aparecem na tela apos selecionar uma linha na lista."""
+
 import pytest
 from textual.widgets import DataTable, Static
 

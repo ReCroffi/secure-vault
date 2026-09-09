@@ -1,3 +1,5 @@
+"""Testes end-to-end da AddScreen: cadastro de credencial e botao gerador."""
+
 import pytest
 
 from vault.core.master_password import create_vault

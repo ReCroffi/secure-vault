@@ -1,3 +1,20 @@
+"""Autenticacao pela senha mestra e derivacao da chave de cifragem.
+
+Duas coisas separadas saem da mesma senha mestra, e por isso existem dois
+algoritmos Argon2 diferentes na mesma familia (argon2-cffi):
+- `hash_master_password`/`verify_master_password` usam o `PasswordHasher` de
+  alto nivel so pra CONFERIR a senha no login (gera e guarda um hash com
+  salt embutido, formato `$argon2id$...`).
+- `derive_encryption_key` usa `hash_secret_raw` (baixo nivel) pra virar a
+  senha mestra numa chave de 32 bytes REPRODUTIVEL, usada pra cifrar/decifrar
+  as senhas dos servicos (`vault.core.crypto`). Por isso ela recebe o `salt`
+  guardado em `VaultConfig`: sem o mesmo salt, a mesma senha gera uma chave
+  diferente e nada decifra.
+
+So existe um `VaultConfig` por vault (linha unica na tabela) - por isso os
+`scalar_one()`/`scalar_one_or_none()` sem filtro de id.
+"""
+
 import secrets
 
 from argon2 import PasswordHasher
@@ -10,15 +27,18 @@ from vault.db.session import Session
 
 
 def hash_master_password(password: str) -> str:
+    """Gera o hash Argon2id da senha mestra, pra guardar em VaultConfig."""
     ph = PasswordHasher()
     return ph.hash(password)
 
 
 def generate_salt() -> bytes:
+    """Gera um salt aleatorio de 16 bytes pra derivacao da chave de cifragem."""
     return secrets.token_bytes(16)
 
 
 def verify_master_password(password: str) -> bool:
+    """Confere a senha digitada contra o hash guardado no vault."""
     with Session() as session:
         vault_config = session.execute(select(VaultConfig)).scalar_one()
         ph = PasswordHasher()
@@ -30,6 +50,8 @@ def verify_master_password(password: str) -> bool:
 
 
 def derive_encryption_key(password: str, salt: bytes) -> bytes:
+    """Deriva a chave de cifragem (32 bytes) a partir da senha mestra e do
+    salt guardado no vault. Mesma senha + mesmo salt = mesma chave sempre."""
     hash_raw = hash_secret_raw(
         password.encode(),
         salt=salt,
@@ -43,6 +65,10 @@ def derive_encryption_key(password: str, salt: bytes) -> bytes:
 
 
 def login(password: str) -> bytes:
+    """Confere a senha mestra e devolve a chave de cifragem derivada dela.
+
+    Levanta ValueError se a senha estiver errada.
+    """
     if verify_master_password(password):
         with Session() as session:
             vault_config = session.execute(select(VaultConfig)).scalar_one()
@@ -54,6 +80,10 @@ def login(password: str) -> bytes:
 
 
 def create_vault(password: str) -> None:
+    """Cria o VaultConfig (hash da senha mestra + salt novo).
+
+    So pode existir um vault: levanta ValueError se ja houver um criado.
+    """
     with Session() as session:
         if session.execute(select(VaultConfig)).scalar_one_or_none() is not None:
             raise ValueError("Vault já existente")

@@ -1,3 +1,6 @@
+"""Tela de detalhe: mostra servico/login/senha (decifrada) de uma
+credencial, e da acesso a apagar ('d') ou editar ('e') ela."""
+
 from typing import ClassVar
 
 from textual.app import ComposeResult
@@ -32,6 +35,8 @@ class DetailScreen(Screen):
 
     def action_apagar(self) -> None:
         credential = get_credential_by_id(self.credential_id)
+        # ConfirmScreen e modal: o segundo argumento (`self.on_confirm_apagar`)
+        # e o callback chamado com o resultado (True/False) quando ela fecha.
         self.app.push_screen(
             ConfirmScreen(
                 f"Tem certeza que deseja apagar a credencial para '{credential.service_name}'?"
@@ -42,6 +47,10 @@ class DetailScreen(Screen):
     def on_confirm_apagar(self, confirmed: bool) -> None:
         if confirmed:
             delete_credential(self.credential_id)
+            # Nao faz pop_screen aqui: a tela continua aberta mostrando uma
+            # credencial ja apagada ate o usuario apertar Esc; nesse ponto
+            # `_carregar_detalhes` (via on_screen_resume da ListScreen la
+            # embaixo) ja nao vai mais achar essa linha.
 
     def action_editar(self) -> None:
         self.app.push_screen(EditScreen(self.credential_id))
@@ -59,4 +68,5 @@ class DetailScreen(Screen):
         )
 
     def on_screen_resume(self) -> None:
+        # Recarrega ao voltar do EditScreen, pra mostrar a senha nova.
         self._carregar_detalhes()

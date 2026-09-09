@@ -1,3 +1,10 @@
+"""Modal generico de sim/nao, reutilizavel por qualquer tela que precise de
+confirmacao (hoje so DetailScreen, pra confirmar exclusao).
+
+`ModalScreen[bool]` amarra o tipo do que `dismiss()` devolve: quem chamou
+`push_screen(ConfirmScreen(msg), callback)` recebe esse bool no callback.
+"""
+
 from typing import ClassVar
 
 from textual.app import ComposeResult

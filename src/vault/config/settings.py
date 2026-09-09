@@ -1,3 +1,7 @@
+"""Config carregada do arquivo `.env` (nao versionado). `settings` e um
+singleton importado por `vault.db.engine`; `test_database_url` e usado pelos
+testes de integracao pra nao mexer no banco de desenvolvimento."""
+
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 

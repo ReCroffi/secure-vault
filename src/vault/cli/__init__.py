@@ -1,3 +1,8 @@
+"""CLI do secure-vault (Typer). Cada `@app.command()` vira um subcomando
+(`secure-vault init`, `secure-vault add ...`, etc). Existe tambem
+`secure-vault tui`, que abre a interface interativa em `vault.tui` - as duas
+interfaces chamam as mesmas funcoes de `vault.core`/`vault.db`."""
+
 import typer
 
 from vault.core.crypto import decrypt_password, encrypt_password

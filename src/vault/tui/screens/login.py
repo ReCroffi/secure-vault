@@ -1,3 +1,5 @@
+"""Primeira tela da TUI: pede a senha mestra e autentica."""
+
 from textual.app import ComposeResult
 from textual.screen import Screen
 from textual.widgets import Input
@@ -14,6 +16,8 @@ class LoginScreen(Screen):
         try:
             key = login(event.value)
             self.app.key = key
+            # switch_screen (nao push_screen) porque nao faz sentido voltar
+            # pro login com "Esc"/back depois de autenticar.
             self.app.switch_screen(ListScreen())
         except ValueError as e:
             self.notify(str(e), severity="error", title="Erro")
